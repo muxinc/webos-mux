@@ -2,13 +2,7 @@ var app = {
     init: function () {
     	if (this.deviceId == undefined || this.deviceName == undefined)
     		return;
-
-    	console.log("initializing...");
-        var container = $('#playerContainer');
-        var jqPlayer = $('<video id="thePlayer" controls preload="none" width="100%" height="100%"></video>');
-        jqPlayer.append('<source src="' + app.url + '" type="video/m3u8">');
-        container.append(jqPlayer);
-        this.player = jqPlayer.get(0);
+        this.player = $('#thePlayer').get(0);
 
         document.addEventListener('keydown', function (event) {
             switch(this.getKeyCode(event)) {
@@ -29,12 +23,16 @@ var app = {
                             this.stop();
                             break;
                         case 2:
+                        	this.player.pause();
                             break;
                         case 3:
+                        	this.player.play();
                             break;
                         case 4:
+                        	this.player.currentTime = this.player.currentTime - 10;
                             break;
                         case 5:
+                        	this.player.currentTime = this.player.currentTime + 10;
                             break;
                     }
                     break;
@@ -101,11 +99,36 @@ var app = {
     },
 
     play: function() {
-    	this.player.play();   
+    	if (Hls.isSupported()) {
+        	var hls = new Hls();
+        	hls.loadSource(this.url);
+        	hls.attachMedia(this.player);
+        	hls.on(Hls.Events.MANIFEST_PARSED,function(e,d) {
+        		app.player.play();
+        	});
+        	mux.monitor('#thePlayer', {
+        	    debug: true,
+        	    // Pass in the HLS.js instance
+        	    hlsjs: hls,
+        	    data: {
+        	        video_title: 'My Great Video',
+        	        player_software_name: 'WebOS AVPlayer',
+        	        player_mux_plugin_name: 'WebOS-mux',
+        	        player_mux_plugin_version: '0.1.0',
+        	        player_init_time: Date.now(),
+        	        player_software_version: this.sdkVersion,
+        	        env_key: '3vtiz2fg0z4ejr20mg1q'
+        	    }
+        	});
+        	this.hls = hls;
+        }
     },
 
     stop: function() {
-    	this.player.pause();
+    	mux.destroyMonitor('#thePlayer');
+    	this.hls.stopLoad();
+    	this.hls.detachMedia();
+    	this.hls.destroy();
     }
 };
 
@@ -124,8 +147,9 @@ $(document).ready(function () {
     app.KEY_PAUSE = 10;
     app.KEY_BACK = 11;
     app.KEY_STOP = 12;
-    app.url = 'http://184.72.239.149/vod/smil:BigBuckBunny.smil/playlist.m3u8';
+    //app.url = 'http://184.72.239.149/vod/smil:BigBuckBunny.smil/playlist.m3u8';
     //app.url = 'https://cspan1nontve-lh.akamaihd.net/i/CSpan1NonTVE_1@312667/index_400_av-p.m3u8';
+    app.url = 'http://d2zihajmogu5jn.cloudfront.net/sintel/master.m3u8';
     
     webOS.service.request('luna://com.webos.service.sm', {
         method: 'deviceid/getIDs',
