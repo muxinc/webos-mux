@@ -62,7 +62,7 @@ var app = {
             }
             event.preventDefault();
             return true;
-        }.bind(this));      
+        }.bind(this));
         this.currentBtnIndex = 0;
         $('#btnPlay').focus();
     },
@@ -99,36 +99,68 @@ var app = {
     },
 
     play: function() {
-    	if (Hls.isSupported()) {
-        	var hls = new Hls();
-        	hls.loadSource(this.url);
-        	hls.attachMedia(this.player);
-        	hls.on(Hls.Events.MANIFEST_PARSED,function(e,d) {
-        		app.player.play();
-        	});
-        	mux.monitor('#thePlayer', {
-        	    debug: true,
-        	    // Pass in the HLS.js instance
-        	    hlsjs: hls,
-        	    data: {
-        	        video_title: 'My Great Video',
-        	        player_software_name: 'WebOS AVPlayer',
-        	        player_mux_plugin_name: 'WebOS-mux',
-        	        player_mux_plugin_version: '0.1.0',
-        	        player_init_time: Date.now(),
-        	        player_software_version: this.sdkVersion,
-        	        env_key: '3vtiz2fg0z4ejr20mg1q'
-        	    }
-        	});
-        	this.hls = hls;
-        }
+    	switch (this.playerEngine) {
+    		case this.PLAYENGINE_HLSJS:
+	    		if (Hls.isSupported()) {
+		        	var hls = new Hls();
+		        	hls.loadSource('http://d2zihajmogu5jn.cloudfront.net/sintel/master.m3u8');
+		        	hls.attachMedia(this.player);
+		        	hls.on(Hls.Events.MANIFEST_PARSED,function(e,d) {
+		        		app.player.play();
+		        	});
+		        	mux.monitor('#thePlayer', {
+		        	    debug: true,
+		        	    // Pass in the HLS.js instance
+		        	    hlsjs: hls,
+		        	    data: {
+		        	        video_title: 'My Great Video',
+		        	        player_software_name: 'WebOS AVPlayer',
+		        	        player_mux_plugin_name: 'WebOS-mux',
+		        	        player_mux_plugin_version: '0.1.0',
+		        	        player_init_time: Date.now(),
+		        	        player_software_version: this.sdkVersion,
+		        	        env_key: 'hrca1hhidk4je5lbtcvjsj4sm'
+		        	    }
+		        	});
+		        	this.hls = hls;
+		        }
+	    		break;
+    		case this.PLAYENGINE_DASHJS:
+    			{
+    				var dashjsPlayer = dashjs.MediaPlayer().create();
+    				dashjsPlayer.getDebug().setLogToBrowserConsole(false);
+    				mux.monitor('#thePlayer', {
+		        	    debug: true,
+		        	    dashjs: dashjsPlayer,
+		        	    data: {
+		        	        video_title: 'My Great Video',
+		        	        player_software_name: 'WebOS AVPlayer',
+		        	        player_mux_plugin_name: 'WebOS-mux',
+		        	        player_mux_plugin_version: '0.1.0',
+		        	        player_init_time: Date.now(),
+		        	        player_software_version: this.sdkVersion,
+		        	        env_key: 'hrca1hhidk4je5lbtcvjsj4sm'
+		        	    }
+		        	});
+    				dashjsPlayer.initialize(this.player, 'http://dash.edgesuite.net/envivio/EnvivioDash3/manifest.mpd', true);
+    				this.dashjsPlayer = dashjsPlayer;
+    			}
+    			break;
+    	}
     },
 
     stop: function() {
     	mux.destroyMonitor('#thePlayer');
-    	this.hls.stopLoad();
-    	this.hls.detachMedia();
-    	this.hls.destroy();
+    	switch (this.playerEngine) {
+			case this.PLAYENGINE_HLSJS:
+		    	this.hls.stopLoad();
+		    	this.hls.detachMedia();
+		    	this.hls.destroy();
+		    	break;
+			case this.PLAYENGINE_DASHJS:
+				this.dashjsPlayer.reset();
+				break;
+    	}
     }
 };
 
@@ -147,9 +179,9 @@ $(document).ready(function () {
     app.KEY_PAUSE = 10;
     app.KEY_BACK = 11;
     app.KEY_STOP = 12;
-    //app.url = 'http://184.72.239.149/vod/smil:BigBuckBunny.smil/playlist.m3u8';
-    //app.url = 'https://cspan1nontve-lh.akamaihd.net/i/CSpan1NonTVE_1@312667/index_400_av-p.m3u8';
-    app.url = 'http://d2zihajmogu5jn.cloudfront.net/sintel/master.m3u8';
+    app.PLAYENGINE_HLSJS = 0;
+    app.PLAYENGINE_DASHJS = 1;
+    app.playerEngine = app.PLAYENGINE_DASHJS;
     
     webOS.service.request('luna://com.webos.service.sm', {
         method: 'deviceid/getIDs',
