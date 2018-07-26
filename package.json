@@ -1,8 +1,8 @@
 {
-  "name": "mux-player-sdk-framework",
+  "name": "webos-mux-demo",
   "version": "2.1.0",
   "author": "Mux, Inc.",
-  "description": "Mux analytics plugin for webOS",
+  "description": "WebOS demo app on how to use the mux plugin",
   "dependencies": {},
   "devDependencies": {
     "mux-embed": "^2.3.2"
