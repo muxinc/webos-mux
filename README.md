@@ -1,21 +1,9 @@
-# tizen-mux
+# Mux Data Integration for WebOS (LG TVs)
 
-The tizen plugin for Mux Analytics
+The official sample integration for LG Smart TVs (Web OS)
 
-## Using
+## Integration Details
 
-Install dependencies:
+This sample integration uses `mux-embed`, the core Mux JavaScript SDK. The core of this repo is a sample application for LG Smart TVs that shows the integration details.
 
-`npm install`
-
-Modify `src/index.js`, `scripts/deploy.js`, the webpack config files, `package.json`, `ads.html`, and `index.html` to remove any references to `tizen`.
-The majority of your code will be in `src/index.js`
-
-Once the code has been completed, run the following to build the package
-
-`yarn run package`
-
-Then, run `yarn run start` to start a webserver, and test the player at
-
-* http://localhost:8080/index.html
-* http://localhost:8080/ads.html
+For more information on the integration, see our [integration documentation](https://docs.mux.com/docs/integration-guide-lg-smart-tvs)
